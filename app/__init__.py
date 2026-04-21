@@ -65,6 +65,7 @@ def _register_blueprints(app):
     from app.controllers.tablo_api      import tablo_api_bp
     from app.controllers.bullet_api     import bullet_api_bp
     from app.controllers.firma_gorusu_api import firma_gorusu_api_bp
+    from app.controllers.ister_onay_api import ister_onay_api_bp
     
     # Sayfa yönlendiricileri
     app.register_blueprint(auth_bp)
@@ -85,6 +86,7 @@ def _register_blueprints(app):
     app.register_blueprint(tablo_api_bp)
     app.register_blueprint(bullet_api_bp)
     app.register_blueprint(firma_gorusu_api_bp)
+    app.register_blueprint(ister_onay_api_bp)
 
 
 
