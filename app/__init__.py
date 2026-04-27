@@ -5,6 +5,7 @@ Flask Uygulaması Başlatma
 from flask import Flask, app
 from config import get_config
 from app.utils.database import init_db, mysql
+from init_schema import init_schema
 
 
 def create_app(config_env='development'):
@@ -23,6 +24,9 @@ def create_app(config_env='development'):
     # Konfigürasyonu yükle
     config = get_config(config_env)
     app.config.from_object(config)
+
+    # SQLite şemasını hazırla
+    init_schema(app)
     
     # Veritabanını başlat
     init_db(app)
@@ -66,6 +70,7 @@ def _register_blueprints(app):
     from app.controllers.bullet_api     import bullet_api_bp
     from app.controllers.firma_gorusu_api import firma_gorusu_api_bp
     from app.controllers.ister_onay_api import ister_onay_api_bp
+    from app.controllers.fotograf_api   import fotograf_api_bp
     
     # Sayfa yönlendiricileri
     app.register_blueprint(auth_bp)
@@ -87,6 +92,7 @@ def _register_blueprints(app):
     app.register_blueprint(bullet_api_bp)
     app.register_blueprint(firma_gorusu_api_bp)
     app.register_blueprint(ister_onay_api_bp)
+    app.register_blueprint(fotograf_api_bp)
 
 
 

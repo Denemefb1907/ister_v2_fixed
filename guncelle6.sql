@@ -1,0 +1,11 @@
+USE ister_v2;
+
+CREATE TABLE IF NOT EXISTS ister_fotograf (
+    FotoID INT AUTO_INCREMENT PRIMARY KEY,
+    NodeID INT NOT NULL,
+    FotoData LONGBLOB NOT NULL,
+    Aciklama VARCHAR(255),
+    OlusturmaTarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (NodeID) REFERENCES ister_node(NodeID) ON DELETE CASCADE,
+    INDEX idx_nodeid (NodeID)
+);

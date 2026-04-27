@@ -166,6 +166,35 @@ mark{background:#fef08a;border-radius:2px;padding:0 1px}
     </div>
   </div>
 </div>
+
+<!-- FOTOĞRAF MODAL -->
+<div class="modal-overlay" id="m-foto">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hd"><div class="modal-title">📸 Fotoğraf Ekle</div><span class="modal-close" onclick="mc('m-foto')">✕</span></div>
+    <div id="f-alert"></div>
+    <div class="fg">
+      <label class="fl">Fotoğraf Dosyası</label>
+      <div style="border:2px dashed var(--border2);border-radius:6px;padding:15px;text-align:center;cursor:pointer" onclick="document.getElementById('f-dosya').click()">
+        <div style="font-size:24px;margin-bottom:5px">📁</div>
+        <div style="font-size:12px;color:var(--text3)">Fotoğraf seçmek için tıklayın</div>
+      </div>
+      <input type="file" id="f-dosya" accept="image/*" onchange="fotoOnizle(this)" style="display:none">
+    </div>
+    <div id="f-onizleme" style="margin-bottom:12px;text-align:center;display:none">
+      <img id="f-resim" style="max-width:100%;max-height:300px;border-radius:6px">
+    </div>
+    <div class="fg">
+      <label class="fl">Açıklama (opsiyonel)</label>
+      <input type="text" id="f-aciklama" placeholder="Fotoğraf açıklaması">
+    </div>
+    <input type="hidden" id="f-nid">
+    <input type="hidden" id="f-data">
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="mc('m-foto')">İptal</button>
+      <button class="btn btn-primary" onclick="fotoKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -177,44 +206,67 @@ let mtSutunlar=[], mtSatirlar=[];
 const RENKLER=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'];
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-fetch('/api/platform').then(r=>r.json()).then(d=>{
-  const havuzlar=d.filter(p=>p.HavuzMu===1||p.HavuzMu==='1'||p.HavuzMu===true);
-  if(!havuzlar.length){
-    document.getElementById('liste-bos').textContent='Havuz platformu bulunamadı.';return;
-  }
-  if(havuzlar.length>1) fetch('/api/admin/havuz_duzenle',{method:'POST'});
-  havuzPID=havuzlar[0].PlatformID;
+fetch('/api/platform')
+  .then(r=>{
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then(d=>{
+    if(!Array.isArray(d)) throw new Error('Platform verisi dizi değil');
+    const havuzlar=d.filter(p=>p.HavuzMu===1||p.HavuzMu==='1'||p.HavuzMu===true);
+    if(!havuzlar.length){
+      document.getElementById('liste-bos').textContent='Havuz platformu bulunamadı.';
+      return;
+    }
+    if(havuzlar.length>1) fetch('/api/admin/havuz_duzenle',{method:'POST'});
+    havuzPID=havuzlar[0].PlatformID;
 
-  // Seviyeler
-  fetch(`/api/platform/${havuzPID}/seviye`).then(r=>r.json()).then(s=>{
-    seviyeler=s;
-    const svOpts=s.map(sv=>`<option value="${sv.SeviyeID}" data-no="${sv.SeviyeNo}">${sv.SeviyeAdi}</option>`).join('');
-    document.getElementById('mi-seviye').innerHTML=svOpts;
-    document.getElementById('ut-seviye').innerHTML=svOpts;
-    document.getElementById('f-seviye').innerHTML='<option value="">Tüm Seviyeler</option>'+
-      s.map(sv=>`<option value="${sv.SeviyeNo}">${sv.SeviyeAdi}</option>`).join('');
-    miSeviyeDegis();
+    // Seviyeler
+    fetch(`/api/platform/${havuzPID}/seviye`)
+      .then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();})
+      .then(s=>{
+        seviyeler=s;
+        const svOpts=s.map(sv=>`<option value="${sv.SeviyeID}" data-no="${sv.SeviyeNo}">${sv.SeviyeAdi}</option>`).join('');
+        document.getElementById('mi-seviye').innerHTML=svOpts;
+        document.getElementById('ut-seviye').innerHTML=svOpts;
+        document.getElementById('f-seviye').innerHTML='<option value="">Tüm Seviyeler</option>'+
+          s.map(sv=>`<option value="${sv.SeviyeNo}">${sv.SeviyeAdi}</option>`).join('');
+        miSeviyeDegis();
+      })
+      .catch(e=>{console.error('Seviye yükleme hatası:', e);});
+    
+    // Konfigler
+    fetch('/api/konfig')
+      .then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();})
+      .then(d=>{
+        konfiglar=d;
+        const kOpts='<option value="">Seçin...</option>'+d.map(k=>`<option value="${k.KonfigID}">${k.KonfigAdi}</option>`).join('');
+        document.getElementById('mi-konfig').innerHTML=kOpts;
+        document.getElementById('f-konfig').innerHTML='<option value="">Tüm Konfigler</option>'+d.map(k=>`<option value="${k.KonfigID}">${k.KonfigAdi}</option>`).join('');
+      })
+      .catch(e=>{console.error('Konfig yükleme hatası:', e);});
+    
+    // Test yöntemleri
+    fetch('/api/test_yontemi')
+      .then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();})
+      .then(d=>{
+        yontemler=d;
+        document.getElementById('mi-yontemi').innerHTML='<option value="">Seçin...</option>'+d.map(y=>`<option value="${y.TestYontemiID}">${y.YontemAdi}</option>`).join('');
+      })
+      .catch(e=>{console.error('Yöntem yükleme hatası:', e);});
+    
+    yukle();
+  })
+  .catch(e=>{
+    console.error('Platform yükleme hatası:', e);
+    document.getElementById('liste-bos').textContent='Veri yükleme hatası: '+e.message;
   });
-  // Konfigler
-  fetch('/api/konfig').then(r=>r.json()).then(d=>{
-    konfiglar=d;
-    const kOpts='<option value="">Seçin...</option>'+d.map(k=>`<option value="${k.KonfigID}">${k.KonfigAdi}</option>`).join('');
-    document.getElementById('mi-konfig').innerHTML=kOpts;
-    document.getElementById('f-konfig').innerHTML='<option value="">Tüm Konfigler</option>'+d.map(k=>`<option value="${k.KonfigID}">${k.KonfigAdi}</option>`).join('');
-  });
-  // Test yöntemleri
-  fetch('/api/test_yontemi').then(r=>r.json()).then(d=>{
-    yontemler=d;
-    document.getElementById('mi-yontemi').innerHTML='<option value="">Seçin...</option>'+d.map(y=>`<option value="${y.TestYontemiID}">${y.YontemAdi}</option>`).join('');
-  });
-  yukle();
-});
 
 function yukle(){
   if(!havuzPID)return;
   Promise.all([
-    fetch(`/api/platform/${havuzPID}/ister_agaci`).then(r=>r.json()),
-    fetch(`/api/rapor/onay_durumu?platform_id=${havuzPID}`).then(r=>r.json())
+    fetch(`/api/platform/${havuzPID}/ister_agaci`).then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();}),
+    fetch(`/api/rapor/onay_durumu?platform_id=${havuzPID}`).then(r=>{if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json();})
   ]).then(([nd,od])=>{
     nodes=nd;
     onaylar={};gorusSayisi={};
@@ -229,6 +281,9 @@ function yukle(){
     document.getElementById('mi-parent').innerHTML=pOpts;
     document.getElementById('ut-parent').innerHTML=pOpts;
     filtrele();
+  }).catch(e=>{
+    console.error('İster ağacı yükleme hatası:', e);
+    document.getElementById('liste-bos').textContent='İsterler yüklenirken hata oluştu: '+e.message;
   });
 }
 
@@ -333,6 +388,7 @@ function renderKutu(node,liste){
         <div style="font-size:12px;line-height:1.6;cursor:pointer;${isBaslik?'font-weight:600;':''}" onclick="secDetay(${node.NodeID})">${vurgula(node.Icerik)||'(boş)'}</div>
         <div id="it-${node.NodeID}"></div>
         <div id="ib-${node.NodeID}"></div>
+        <div id="if-${node.NodeID}"></div>
         <div id="ig-${node.NodeID}" data-y="0"></div>
         <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:5px">
           <button class="bm" onclick="siralaDegis(${node.NodeID},'yukari')">↑</button>
@@ -341,6 +397,7 @@ function renderKutu(node,liste){
           <button class="bm" onclick="yeniIsterModal(${node.NodeID},'B','alt')">+ Alt Başlık</button>
           <button class="bm" onclick="bulletEkle(${node.NodeID})">• Bullet Ekle</button>
           <button class="bm" onclick="tabloModal(${node.NodeID})">+ Tablo</button>
+          <button class="bm" onclick="fotoModal(${node.NodeID})">🖼 Fotoğraf</button>
           <button class="bm" onclick="duzModal(${node.NodeID})">✎</button>
           <button class="bm d" onclick="isterSil(${node.NodeID})">✕</button>
         </div>
@@ -519,19 +576,24 @@ function secDetay(nid){
         </div>
         <div style="font-size:10px;color:var(--text3)">#${nd.NodeID}</div>
       </div>
-      <div style="display:flex;gap:4px">
+      <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="bm" onclick="fotoModal(${nd.NodeID})">🖼 Fotoğraf</button>
         <button class="bm" onclick="duzModal(${nd.NodeID})">✎ Düzenle</button>
         <button class="bm d" onclick="isterSil(${nd.NodeID})">✕ Sil</button>
       </div>
     </div>
     <div style="padding:11px;background:var(--bg3);border-radius:6px;font-size:12px;line-height:1.7;margin-bottom:10px">${nd.Icerik||'(boş)'}</div>
     ${nd.TestYontemiAdi?`<div style="padding:5px 9px;background:var(--bg3);border-radius:4px;font-size:11px;display:inline-flex;gap:5px;margin-bottom:9px"><span style="color:var(--text3)">Test Yöntemi:</span><b>${nd.TestYontemiAdi}</b></div>`:''}
+    <div id="detay-fotograflar" style="margin-bottom:10px"></div>
     ${ch.length?`<div style="margin-top:10px"><div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:5px">${ch.length} ALT İSTER</div>
     ${ch.map(c=>`<div onclick="secDetay(${c.NodeID})" style="padding:6px 9px;background:var(--bg3);border-radius:4px;margin-bottom:3px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px">
       ${c.NodeNumarasi?`<span class="nb">${c.NodeNumarasi}</span>`:''}
       ${c.HavuzKodu?`<span class="${c.IsterTipi==='B'?'kb-b':'kb-g'}">${c.HavuzKodu}</span>`:''}
       <span>${c.Icerik||'(boş)'}</span>
     </div>`).join('')}</div>`:''}`;
+  yukleButonlar(nid);
+  yukleTabloları(nid);
+  yukleFotograflar(nid);
 }
 
 // ── SAĞ TIK ───────────────────────────────────────────────────────────────
@@ -781,5 +843,98 @@ function exportListe(){
 // ── YARDIMCI ──────────────────────────────────────────────────────────────
 function mc(id){document.getElementById(id).classList.remove('on');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('ctx').style.display='none';document.querySelectorAll('.modal-overlay.on').forEach(m=>m.classList.remove('on'));}});
+
+// ── FOTOĞRAF ──────────────────────────────────────────────────────────────
+function fotoModal(nid){
+  document.getElementById('f-nid').value=nid;
+  document.getElementById('f-aciklama').value='';
+  document.getElementById('f-dosya').value='';
+  document.getElementById('f-resim').style.display='none';
+  document.getElementById('f-data').value='';
+  document.getElementById('m-foto').classList.add('on');
+}
+
+function fotoOnizle(inp){
+  const f=inp.files[0];if(!f)return;
+  // Dosya boyutu kontrol et (5MB limit)
+  if(f.size>5242880){
+    document.getElementById('f-alert').innerHTML='<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Dosya boyutu 5MB\'dan fazla olamaz.</div>';
+    return;
+  }
+  document.getElementById('f-alert').innerHTML='';
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=document.getElementById('f-resim');
+    img.src=e.target.result;
+    document.getElementById('f-onizleme').style.display='block';
+    document.getElementById('f-data').value=e.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function fotoKaydet(){
+  const nid=parseInt(document.getElementById('f-nid').value);
+  const data=document.getElementById('f-data').value;
+  const aciklama=document.getElementById('f-aciklama').value.trim();
+  
+  if(!data){
+    document.getElementById('f-alert').innerHTML='<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Lütfen bir fotoğraf seçin.</div>';
+    return;
+  }
+  
+  document.getElementById('f-alert').innerHTML='<div style="background:var(--blue-bg);color:var(--blue);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">⏳ Yükleniyor...</div>';
+  
+  fetch('/api/ister_fotograf',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({NodeID:nid,FotoData:data,Aciklama:aciklama})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.hata){
+      document.getElementById('f-alert').innerHTML='<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Hata: '+d.hata+'</div>';
+      return;
+    }
+    mc('m-foto');
+    yukleFotograflar(nid);
+  })
+  .catch(e=>{
+    document.getElementById('f-alert').innerHTML='<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Hata: '+e+'</div>';
+  });
+}
+
+function yukleFotograflar(nid){
+  fetch(`/api/ister_fotograf/${nid}`)
+  .then(r=>r.json())
+  .then(list=>{
+    const el=document.getElementById('detay-fotograflar');
+    if(!el)return;
+    if(!list.length){el.innerHTML='';return;}
+    
+    el.innerHTML=`<div style="margin-top:10px"><div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">📸 Fotoğraflar (${list.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
+        ${list.map(f=>`
+          <div style="position:relative;border:1px solid var(--border2);border-radius:6px;overflow:hidden;background:var(--bg2)">
+            <img src="${f.FotoData}" style="width:100%;height:100px;object-fit:cover;cursor:pointer" onclick="fotoDetayGoster('${f.FotoID}','${f.FotoData}','${(f.Aciklama||'').replace(/'/g,'')}')">
+            <button class="bm d" style="position:absolute;top:4px;right:4px;padding:2px 5px;font-size:10px;background:rgba(0,0,0,0.6);color:white;border:none" onclick="fotoSil(${f.FotoID},${nid})">✕</button>
+            ${f.Aciklama?`<div style="font-size:9px;padding:4px;background:var(--bg3);color:var(--text3);max-height:30px;overflow:hidden">${f.Aciklama}</div>`:''}
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  })
+  .catch(()=>{});
+}
+
+function fotoDetayGoster(fid,data,aciklama){
+  alert((aciklama||'Açıklama yok')+'\n\n(Yüksek kalite görmek için sağ tıklayıp resmi indir)');
+}
+
+function fotoSil(fid,nid){
+  if(!confirm('Bu fotoğrafı silmek istediğinize emin misiniz?'))return;
+  fetch(`/api/ister_fotograf/${fid}`,{method:'DELETE'})
+  .then(()=>yukleFotograflar(nid))
+  .catch(e=>alert('Hata: '+e));
+}
 </script>
 {% endblock %}

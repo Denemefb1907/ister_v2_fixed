@@ -223,6 +223,15 @@ CREATE TABLE IF NOT EXISTS ister_bullet (
     OlusturmaTarihi TEXT    DEFAULT (datetime('now')),
     FOREIGN KEY (NodeID) REFERENCES ister_node(NodeID) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS ister_fotograf (
+    FotoID          INTEGER PRIMARY KEY AUTOINCREMENT,
+    NodeID          INTEGER NOT NULL,
+    FotoData        BLOB    NOT NULL,
+    Aciklama        TEXT    NULL,
+    OlusturmaTarihi TEXT    DEFAULT (datetime('now')),
+    FOREIGN KEY (NodeID) REFERENCES ister_node(NodeID) ON DELETE CASCADE
+);
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
