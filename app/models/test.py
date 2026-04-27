@@ -1,6 +1,7 @@
 """
 Test Modeli - Test Aşamaları ve Sonuçları
 """
+from datetime import datetime
 from app.models.base import BaseModel
 
 
@@ -123,11 +124,18 @@ class TestModel(BaseModel):
         
         cur.execute(q, params)
         results = cur.fetchall()
-        
+
         for r in results:
             if r.get('Tarih'):
-                r['Tarih'] = r['Tarih'].strftime('%d.%m.%Y %H:%M')
-        
+                dt = r['Tarih']
+                if isinstance(dt, str):
+                    try:
+                        dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        pass
+                if hasattr(dt, 'strftime'):
+                    r['Tarih'] = dt.strftime('%d.%m.%Y %H:%M')
+
         cur.close()
         return results
     

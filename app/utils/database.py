@@ -132,6 +132,14 @@ def _get_connection() -> sqlite3.Connection:
         conn.row_factory = sqlite3.Row
         conn.execute('PRAGMA journal_mode=WAL')
         conn.execute('PRAGMA foreign_keys=ON')
+
+        # SQLite REGEXP fonksiyonunu tanımla (MySQL uyumluluğu)
+        def regexp(pattern, text):
+            if text is None:
+                return False
+            return bool(re.search(pattern, text))
+
+        conn.create_function('REGEXP', 2, regexp)
         g._db = conn
     return g._db
 

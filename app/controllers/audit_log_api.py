@@ -4,6 +4,7 @@ Denetim Logu API Controller'ı (Blueprint)
 from flask import Blueprint, jsonify, request
 from app.utils.database import mysql
 from app.utils.auth import login_required
+from datetime import datetime
 
 audit_log_api_bp = Blueprint('audit_log_api', __name__, url_prefix='/api')
 
@@ -45,7 +46,14 @@ def log_listesi():
     d = cur.fetchall()
     for r in d:
         if r.get('DegisimTarihi'):
-            r['DegisimTarihi'] = r['DegisimTarihi'].strftime('%d.%m.%Y %H:%M:%S')
+            dt = r['DegisimTarihi']
+            if isinstance(dt, str):
+                try:
+                    dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    pass  # keep as string if parsing fails
+            if hasattr(dt, 'strftime'):
+                r['DegisimTarihi'] = dt.strftime('%d.%m.%Y %H:%M:%S')
     cur.close()
     return jsonify(d)
 

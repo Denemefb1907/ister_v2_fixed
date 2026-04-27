@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request, session
 from app.utils.database import mysql
 from app.utils.auth import login_required
 from app.utils.logging import record_log, LogType
+from datetime import datetime
 
 firma_gorusu_api_bp = Blueprint('firma_gorusu_api', __name__, url_prefix='/api')
 
@@ -44,7 +45,14 @@ def firma_gorusu_listesi(node_id):
 
     for g in gorus_list:
         if g.get('OlusturmaTarihi'):
-            g['OlusturmaTarihi'] = g['OlusturmaTarihi'].strftime('%d.%m.%Y %H:%M')
+            dt = g['OlusturmaTarihi']
+            if isinstance(dt, str):
+                try:
+                    dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    pass
+            if hasattr(dt, 'strftime'):
+                g['OlusturmaTarihi'] = dt.strftime('%d.%m.%Y %H:%M')
 
         cur.execute(
             """SELECT y.*, k.AdSoyad AS YazanAdi
@@ -57,7 +65,14 @@ def firma_gorusu_listesi(node_id):
         yanitlar = cur.fetchall()
         for y in yanitlar:
             if y.get('OlusturmaTarihi'):
-                y['OlusturmaTarihi'] = y['OlusturmaTarihi'].strftime('%d.%m.%Y %H:%M')
+                dt = y['OlusturmaTarihi']
+                if isinstance(dt, str):
+                    try:
+                        dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        pass
+                if hasattr(dt, 'strftime'):
+                    y['OlusturmaTarihi'] = dt.strftime('%d.%m.%Y %H:%M')
         g['yanitlar'] = yanitlar
 
     cur.close()

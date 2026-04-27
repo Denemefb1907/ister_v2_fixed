@@ -1,6 +1,7 @@
 """
 Pano (Dashboard) ve Rapor API Controller'ı (Blueprint)
 """
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from app.models.dashboard import DashboardModel
 from app.models.platform import PlatformModel
@@ -148,7 +149,14 @@ def get_company_reviews():
     data = cur.fetchall()
     for row in data:
         if row.get('OlusturmaTarihi'):
-            row['OlusturmaTarihi'] = row['OlusturmaTarihi'].strftime('%d.%m.%Y %H:%M')
+            dt = row['OlusturmaTarihi']
+            if isinstance(dt, str):
+                try:
+                    dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    pass
+            if hasattr(dt, 'strftime'):
+                row['OlusturmaTarihi'] = dt.strftime('%d.%m.%Y %H:%M')
     cur.close()
     return jsonify(data)
 
