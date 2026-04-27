@@ -71,7 +71,7 @@
 <div class="modal-overlay" id="seviye-modal">
   <div class="modal">
     <div class="modal-hd"><div class="modal-title" id="sm-baslik">Yeni Seviye</div><span class="modal-close" onclick="modalKapat('seviye-modal')">✕</span></div>
-    <div class="fg"><label class="fl">Seviye Adı (örn: TGD, SGÖ)</label><input type="text" id="sm-adi"></div>
+    <div class="fg"><label class="fl">Seviye Adı (örn: TGD, SGÖ)</label><input type="text" id="sv-adi"></div>
     <div class="modal-ft">
       <button class="btn btn-ghost" onclick="modalKapat('seviye-modal')">İptal</button>
       <button class="btn btn-primary" onclick="seviyeKaydet()">Kaydet</button>
@@ -216,10 +216,10 @@ function platformKaydet(){
     .then(()=>{modalKapat('platform-modal');yukle()});
 }
 
-function seviyeEkleModal(){duzSeviye=null;document.getElementById('sm-baslik').textContent='Yeni Seviye';document.getElementById('sm-adi').value='';document.getElementById('seviye-modal').classList.add('on');document.getElementById('sm-adi').focus()}
-function seviyeDuzenle(id,adi){duzSeviye=id;document.getElementById('sm-baslik').textContent='Seviye Düzenle';document.getElementById('sm-adi').value=adi;document.getElementById('seviye-modal').classList.add('on')}
+function seviyeEkleModal(){duzSeviye=null;document.getElementById('sm-baslik').textContent='Yeni Seviye';document.getElementById('sv-adi').value='';document.getElementById('seviye-modal').classList.add('on');document.getElementById('sv-adi').focus()}
+function seviyeDuzenle(id,adi){duzSeviye=id;document.getElementById('sm-baslik').textContent='Seviye Düzenle';document.getElementById('sv-adi').value=adi;document.getElementById('seviye-modal').classList.add('on')}
 function seviyeKaydet(){
-  const adi=document.getElementById('sm-adi').value.trim();
+  const adi=document.getElementById('sv-adi').value.trim();
   if(!adi)return;
   const url=duzSeviye?`/api/seviye/${duzSeviye}`:`/api/platform/${seciliPID}/seviye`;
   fetch(url,{method:duzSeviye?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({SeviyeAdi:adi})})
