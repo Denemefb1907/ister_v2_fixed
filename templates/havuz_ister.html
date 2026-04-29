@@ -41,6 +41,7 @@ mark{background:#fef08a;border-radius:2px;padding:0 1px}
 .foto-thumb .foto-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;display:none}
 .foto-thumb:hover .foto-del{display:block}
 .foto-cap{font-size:9px;padding:2px 4px;background:var(--bg2);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 </style>
 {% endblock %}
 
@@ -693,14 +694,17 @@ function yukleFotograflarListe(nid){
       el.innerHTML=`<div class="foto-grid">${filtered.map(f=>`
         <div class="foto-thumb">
           <img src="/api/ister_fotograf/foto/${f.FotoID}"
-               loading="lazy"
-               title="${(f.Aciklama||'').replace(/"/g,'&quot;')}"
-               onclick="lbAc(${f.FotoID},${JSON.stringify(f.Aciklama||'')})">
+            loading="lazy"
+            data-id="${f.FotoID}"
+            data-aciklama="${(f.Aciklama||'').replace(/"/g,'&quot;')}"
+            onclick="lbAc(this.dataset.id, this.dataset.aciklama)">
           <button class="foto-del" onclick="fotoSilListe(${f.FotoID},${nid},event)">✕</button>
           ${f.Aciklama?`<div class="foto-cap">${f.Aciklama}</div>`:''}
         </div>`).join('')}</div>`;
     }).catch(()=>{});
 }
+
+
 
 function fotoSilListe(fid,nid,e){
   e.stopPropagation();
@@ -723,8 +727,10 @@ function yukleFotograflar(nid){
         <div class="foto-grid">${filtered.map(f=>`
           <div class="foto-thumb">
             <img src="/api/ister_fotograf/foto/${f.FotoID}"
-                 loading="lazy"
-                 onclick="lbAc(${f.FotoID},${JSON.stringify(f.Aciklama||'')})">
+              loading="lazy"
+              data-id="${f.FotoID}"
+              data-aciklama="${(f.Aciklama||'').replace(/"/g,'&quot;')}"
+              onclick="lbAc(this.dataset.id, this.dataset.aciklama)">
             <button class="foto-del" onclick="fotoSil(${f.FotoID},${nid})">✕</button>
             ${f.Aciklama?`<div class="foto-cap">${f.Aciklama}</div>`:''}
           </div>`).join('')}
@@ -741,7 +747,16 @@ function fotoSil(fid,nid){
 
 function lbAc(fotoId,aciklama){
   document.getElementById('lb-img').src='/api/ister_fotograf/foto/'+fotoId;
-  document.getElementById('lb-cap').textContent=aciklama||'';
+
+  const cap=document.getElementById('lb-cap');
+  if(aciklama && aciklama.trim()){
+    cap.textContent=aciklama;
+    cap.style.display='block';
+  }else{
+    cap.textContent='';
+    cap.style.display='none';
+  }
+
   document.getElementById('m-lightbox').classList.add('on');
 }
 function lbKapat(e){if(e.target===document.getElementById('m-lightbox'))document.getElementById('m-lightbox').classList.remove('on');}
