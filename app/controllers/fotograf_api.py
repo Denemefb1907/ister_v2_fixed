@@ -125,3 +125,34 @@ def ister_fotograf_indir(foto_id):
         return jsonify(foto)
     except Exception as e:
         return jsonify({'hata': str(e)}), 500
+
+@fotograf_api_bp.route('/ister_fotograf/<int:node_id>/meta', methods=['GET'])
+@login_required
+def ister_fotograf_meta(node_id):
+    """FotoData olmadan sadece metadata döner (hızlı liste için)"""
+    fm = FotografModel(mysql)
+    fotograflar = fm.listesi_meta(node_id)
+    return jsonify(fotograflar)
+
+
+@fotograf_api_bp.route('/ister_fotograf/foto/<int:foto_id>', methods=['GET'])
+@login_required
+def ister_fotograf_goruntu(foto_id):
+    """Fotoğrafı doğrudan image/jpeg olarak döner (browser cache'ler)"""
+    import base64
+    from flask import Response
+    fm = FotografModel(mysql)
+    foto = fm.git(foto_id)
+    if not foto:
+        return ('', 404)
+    try:
+        data_url = foto['FotoData']
+        # "data:image/jpeg;base64,..." formatından raw bytes'a çevir
+        header, b64 = data_url.split(',', 1)
+        img_bytes = base64.b64decode(b64)
+        mime = header.split(':')[1].split(';')[0]  # image/jpeg
+        resp = Response(img_bytes, mimetype=mime)
+        resp.headers['Cache-Control'] = 'private, max-age=86400'  # 1 gün cache
+        return resp
+    except Exception as e:
+        return jsonify({'hata': str(e)}), 500
