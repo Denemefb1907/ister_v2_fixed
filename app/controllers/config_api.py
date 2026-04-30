@@ -59,6 +59,26 @@ def update_configuration(config_id):
     return jsonify({'ok': True})
 
 
+@config_api_bp.route('/konfig/<int:config_id>/check-usage', methods=['GET'])
+@login_required
+def check_config_usage(config_id):
+    """Konfigürasyonun isterde kullanılıp kullanılmadığını kontrol et"""
+    model = ConfigurationModel(mysql)
+    existing = model.get_by_id(config_id)
+    
+    if not existing:
+        return jsonify({'error': 'Konfigürasyon bulunamadı'}), 404
+    
+    # Check if configuration is used in any requirements
+    used_in_requirements = model.get_requirements_using_config(config_id)
+    
+    return jsonify({
+        'KonfigAdi': existing['KonfigAdi'],
+        'isUsed': len(used_in_requirements) > 0,
+        'details': used_in_requirements
+    })
+
+
 @config_api_bp.route('/konfig/<int:config_id>', methods=['DELETE'])
 @login_required
 def delete_configuration(config_id):

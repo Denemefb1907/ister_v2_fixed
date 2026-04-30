@@ -81,6 +81,27 @@ class ConfigurationModel(BaseModel):
         self.commit()
         cur.close()
     
+    def get_requirements_using_config(self, config_id):
+        """
+        Konfigürasyonu kullanan isterleri döndür
+        
+        Args:
+            config_id: Konfigürasyon ID'si
+            
+        Returns:
+            list: Konfigürasyonu kullanan ister bilgileri
+        """
+        cur = self.get_dict_cursor()
+        cur.execute("""
+            SELECT n.NodeID, n.NodeNumarasi, n.Icerik, p.PlatformAdi
+            FROM ister_node n
+            JOIN platform_list p ON n.PlatformID=p.PlatformID
+            WHERE n.KonfigID=%s
+        """, (config_id,))
+        requirements = cur.fetchall()
+        cur.close()
+        return requirements
+    
     def get_by_platform(self, platform_id):
         """
         Platform'a bağlı konfigürasyonları döndür
