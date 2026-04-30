@@ -13,6 +13,7 @@
 + firma görüş yanıt log da basmalı.
 
 
+
 + Başlıkları girip kaydettikten sonra tekrar girilince bağlı olduğu başlığı unutuyor. Raporlar ekranında düzgün sıralı görünmüyor. (ÖNEMLİ KÖK NEDEN ANALİZİ YAP)
 
 ## Yapılanlar
@@ -26,6 +27,7 @@
 + Yeni column eklendi. 
 + Havuz isterlerdeki "Görüş" kısmı kaldırıldı.
 + Log basımı eksik olan kısımlar tamamlandı.
++ İstere atanan bir konfigürasyon silinirken uyarı popup'ı eklendi.
 ```` 
 ALTER TABLE degisiklik_log
 ADD Tur VARCHAR(10); 

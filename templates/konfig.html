@@ -17,10 +17,17 @@
     <div class="modal-ft"><button class="btn btn-ghost" onclick="modalKapat()">İptal</button><button class="btn btn-primary" onclick="kaydet()">Kaydet</button></div>
   </div>
 </div>
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">Silme Onayı</div><span class="modal-close" onclick="confirmKapat()">✕</span></div>
+    <div id="confirmMessage"></div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="confirmKapat()">İptal</button><button class="btn btn-danger" onclick="confirmSil()">Evet, Sil</button></div>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
-let data=[],duz=null;
+let data=[],duz=null,silmeAyakta=null;
 function yukle(){fetch('/api/konfig').then(r=>r.json()).then(d=>{data=d;render(d)})}
 function render(list){
   const t=document.getElementById('tablo');
@@ -40,8 +47,29 @@ function kaydet(){
   const url=duz?`/api/konfig/${duz}`:'/api/konfig';
   fetch(url,{method:duz?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({KonfigAdi:adi})}).then(()=>{modalKapat();yukle()});
 }
-function sil(id){if(!confirm('Sil?'))return;fetch(`/api/konfig/${id}`,{method:'DELETE'}).then(()=>yukle())}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')modalKapat()});
+function sil(id){
+  silmeAyakta=id;
+  fetch(`/api/konfig/${id}/check-usage`).then(r=>r.json()).then(res=>{
+    const konfigAdi=res.KonfigAdi;
+    let msg='<div class="alert alert-warn"><strong>Dikkat!</strong><br>';
+    if(res.isUsed){
+      msg+='Bu konfigürasyon aşağıdaki isterlere atanmıştır:<br><br><ul style="font-size:14px;margin:10px 0">';
+      res.details.forEach(detail=>{
+        msg+=`<li><strong>${detail.PlatformAdi}</strong> - ${detail.NodeNumarasi} (${detail.Icerik.substring(0,50)}...)</li>`;
+      });
+      msg+='</ul><br>Yine de silmek istediğinize emin misiniz?</div>';
+    }else{
+      msg+='Bu konfigürasyonu silmek istediğinize emin misiniz?</div>';
+    }
+    document.getElementById('confirmMessage').innerHTML=msg;
+    document.getElementById('confirmModal').classList.add('on');
+  });
+}
+function confirmSil(){
+  fetch(`/api/konfig/${silmeAyakta}`,{method:'DELETE'}).then(()=>{confirmKapat();yukle()});
+}
+function confirmKapat(){document.getElementById('confirmModal').classList.remove('on');silmeAyakta=null}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){modalKapat();confirmKapat()}});
 yukle();
 </script>
 {% endblock %}
