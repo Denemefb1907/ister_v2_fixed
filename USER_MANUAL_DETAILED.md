@@ -161,48 +161,6 @@ Form açılır:
 └──────────────────────────────────────────┘
 ```
 
-#### 3️⃣ Gerekli Alanları Doldur
-
-| Alan | Kuralı | Örnek |
-|------|--------|-------|
-| **Platform Adı** | Benzersiz, tanımlayıcı | "GIGN v3.1", "MÖP 2.0 Basic" |
-
-#### 4️⃣ Arka Planda Veri Tabanı Saklama
-
-```python
-# backend/Flask API (platform_api.py):
-@app.route('/api/platform', methods=['POST'])
-@login_required
-def create_platform():
-    data = request.json
-    cur = mysql.connection.cursor()
-    cur.execute(
-        "INSERT INTO platform_list (PlatformAdi, HavuzMu) VALUES (%s, 0)",
-        (data['PlatformAdi'],)
-    )
-    mysql.connection.commit()
-    platform_id = cur.lastrowid  # Otomatik ID
-    
-    # Denetim Günlüğüne Kayıt:
-    record_log('platform_list', platform_id, 'Platform', 
-               '-', data['PlatformAdi'], LogType.CREATE.value)
-    
-    cur.close()
-    return jsonify({'PlatformID': platform_id})
-```
-
-#### 5️⃣ Başarı ve Sonraki Adımlar
-
-Platform oluşturulur ve listeye eklenir:
-
-```
-Sonraki Yapılacaklar:
-1. Seviyeleri tanımla (İster hiyerarşisini oluştur)
-2. Test aşamalarını tanımla
-3. Konfigürasyonları ata
-4. İsterler oluşturmaya başla
-```
-
 ### 🔄 Havuz Platform Tanımlama - Özel İşlem
 
 #### Havuz Platform Nedir?
@@ -362,12 +320,6 @@ Sistem Gerekliliği (Level 1)
 │ │  ├─ Modül Gerekliliği (Level 3)
 │ │  │  └─ Komponent Gerekliliği (Leveli 4)
 
-Veritabanı (seviye_tanim):
-├── SeviyeID
-├── PlatformID
-├── SeviyeNo (1, 2, 3, 4, ...)
-├── SeviyeAdi ("Sistem", "Alt Sistem", ...)
-└── OlusturmaTarihi
 ```
 
 #### Mevcut Seviyeleri Görüntüleme
@@ -498,7 +450,7 @@ Atanacak konfigleri seçin (checkbox):
 **URL:** `http://localhost:5000/ister`  
 **Navigasyon:** Ana Menü → İster Ağacı
 
-### 🎯 İster Ağacı Yapısı - Kapsamlı
+### 🎯 İster Ağacı Yapısı 
 
 #### İster Tipi
 
@@ -512,34 +464,6 @@ Atanacak konfigleri seçin (checkbox):
 └─ Normal, yapılması gereken bir fonksiyon
    Test edilebilir, ölçülebilir
    Veritabanında IsterTipi = 'G'
-```
-
-#### Örnek Ister Ağacı
-
-```
-Platform: GIGN v3.1
-
-1. Başlangıç Kontrolleri (B=Başlık, Level=1, SiraNo=1)
-   ├─ 1.1 Sistem Başlatması (G=Genel, Level=2, SiraNo=1)
-   ├─ 1.2 Tan Kontrolleri (G=Genel, Level=2, SiraNo=2)
-   └─ 1.3 Sıcaklık Ölçümü (G=Genel, Level=2, SiraNo=3)
-
-2. Çalışma Modları (B=Başlık, Level=1, SiraNo=2)
-   ├─ 2.1 Normal İşletim (G=Genel, Level=2, SiraNo=1)
-   │   ├─ 2.1.1 Veri Toplama (G=Genel, Level=3, SiraNo=1)
-   │   └─ 2.1.2 Analiz (G=Genel, Level=3, SiraNo=2)
-   └─ 2.2 Tanı Veri Oku (G=Genel, Level=2, SiraNo=2)
-
-3. Hatalar (B=Başlık, Level=1, SiraNo=3)
-   └─ 3.1 Sistem Kapanması (G=Genel, Level=2, SiraNo=1)
-
-Veritabanı İlişkileri:
-NodeID | ParentID | SeviyeNo | Icerik
-1      | NULL     | 1        | "Başlangıç Kontrolleri"
-2      | 1        | 2        | "Sistem Başlatması"
-3      | 1        | 2        | "Tan Kontrolleri"
-4      | NULL     | 1        | "Çalışma Modları"
-5      | 4        | 2        | "Normal İşletim"
 ```
 
 ### ➕ Yeni İster Ekleme - Adım Adım
@@ -583,7 +507,7 @@ Sol Panel Butonları:
 │ Test Yöntemi: [Seçiniz ▼]           │
 │ Açıklama: [________________]         │
 │                                      │
-│ [Vazgeç]           [Ekle]           │
+│ [İptal]           [Kaydet]           │
 └─────────────────────────────────────┘
 ```
 
@@ -594,49 +518,6 @@ Doldur:
 - **Konfigürasyonlar:** Seçilmeye bırak (tüm konfig için)
 
 "**Ekle**" tıkla
-
-**Backend İşlemi:**
-```python
-# 1. Numarası otomatik üret
-if not parent_id:  # Root başlık
-    # Mevcut başlık count'ını al
-    cur.execute("SELECT COUNT(*) as cnt FROM ister_node 
-                 WHERE PlatformID=%s AND ParentID IS NULL", (platform_id,))
-    count = cur.fetchone()['cnt']
-    node_number = str(count + 1)  # "1", "2", "3", ...
-else:
-    # Alt ister
-    parent_node = get_node(parent_id)
-    parent_number = parent_node['NodeNumarasi']
-    # Alt count'ını al
-    cur.execute("SELECT COUNT(*) as cnt FROM ister_node 
-                 WHERE ParentID=%s", (parent_id,))
-    count = cur.fetchone()['cnt']
-    node_number = f"{parent_number}.{count + 1}"  # "1.1", "1.2", ...
-
-# 2. SiraNo auto-increment
-cur.execute("SELECT COALESCE(MAX(SiraNo), 0) + 1 as next_sira " +
-              "FROM ister_node WHERE ParentID IS NULL AND PlatformID=%s",
-              (platform_id,))
-sira_no = cur.fetchone()['next_sira']
-
-# 3. Insert
-cur.execute("""INSERT INTO ister_node (
-    PlatformID, SeviyeID, ParentID, NodeNumarasi,
-    IsterTipi, Icerik, SiraNo, KonfigID, OlusturanID
-) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-    (platform_id, level_id, None, node_number,
-     'B', 'Başlangıç Kontrolleri', sira_no,
-     config_id, session['kullanici_id'])
-)
-new_node_id = cur.lastrowid
-
-# 4. Denetim Günlüğü
-record_log('ister_node', new_node_id, 'Node', 
-           '-', 'Başlangıç Kontrolleri', LogType.CREATE.value)
-```
-
-**Sonuç:** Sol panele başlık eklenir:
 
 ```
 Sol Panel:
