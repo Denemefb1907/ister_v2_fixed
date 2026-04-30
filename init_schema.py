@@ -310,6 +310,28 @@ def init_schema(app=None, db_path: str = None):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
             print(f"[schema] Sütun eklendi: {table}.{column}")
 
+
+
+    # Duplicate temizleme (ilk kayıt kalsın)
+
+    # FK kapat
+    conn.execute("PRAGMA foreign_keys = OFF")
+    # SADECE test_yontemi temizle
+    conn.execute("""
+    DELETE FROM test_yontemi
+    WHERE rowid NOT IN (
+    SELECT MIN(rowid)
+    FROM test_yontemi
+    GROUP BY YontemAdi
+    )
+    """)
+
+    # UNIQUE index'leri oluştur (yoksa oluşturur)
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_test_yontemi_ad ON test_yontemi(YontemAdi)")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_platform_ad ON platform_list(PlatformAdi)") 
+    # FK tekrar aç
+    conn.execute("PRAGMA foreign_keys = ON")
+
     # 3. Seed verilerini yükle
     conn.executescript(_SEED)
 
