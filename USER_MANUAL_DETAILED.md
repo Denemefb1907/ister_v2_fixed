@@ -7,9 +7,8 @@
 
 ---
 
-## 📚 Mastered İçindekiler
+## 📚 İçindekiler
 
-- [Başlangıç](#başlangıç)
 - [Platform Yönetimi](#platform-yönetimi)
   - [Platform Oluşturma](#yeni-platform-oluşturma)
   - [Havuz Platform Tanımlama](#havuz-platform-tanımlama)
@@ -41,24 +40,8 @@
 - [Kullanıcı Yönetimi](#kullanıcı-yönetimi-yönetici)
 - [İleri Konular](#ileri-konular)
 - [Sorun Giderme](#sorun-giderme)
-- [SSS](#sık-sorulan-sorular-sss)
 
 ---
-
-## Başlangıç
-
-### 🎯 Uygulamanın Amacı ve Kapsamı
-
-**İster Yönetimi v2**, kritik yazılım sistemleri (otomotiv, endüstriyel kontrol, sağlık, havacılık vb.) için gerçek zamanlı, tam izlenebilir (traceability) bir gereksinim yönetim sistemidir.
-
-**İstenlerin merkezi yönetimi** yazılım kalitesini garantilemek için önemlidir:
-- ✅ Hangi gereksinim var?
-- ✅ Kim tarafından test edildi?
-- ✅ Test nasıl yapıldı?
-- ✅ Müşteri tarafından onaylandı mı?
-- ✅ Hangi ürün versiyonlarında mevcut?
-
-Bu sorulara anında cevap verebilen sistem olmasa, yazılımda kritik hatalar oluşabilir.
 
 ### 🏗️ Teknik Mimarisi
 
@@ -134,7 +117,7 @@ GIGN v3.1 (PlatformID=1)
 ├─ Test Aşamaları (test_asama tablosu)
 │  └─ Unit, Integration, System, etc.
 ├─ Konfigürasyonları (platform_konfig tablosu)
-│  └─ Hangi konfiglar uygulanır?
+│  └─ Hangi konfigler uygulanır?
 └─ İsterleri (ister_node tablosu)
    └─ Hiyerarşik ister ağacı
 ```
@@ -149,18 +132,18 @@ Görünüm:
 │ Platform Yönetimi                                   │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│ [+ Yeni Platform Ekle]                             │
+│                               [+ Yeni Platform Ekle]│
 │                                                     │
-│ ┌─────────────────────────────────────────────┐    │
-│ │ Platform Adı                  │ İşlemler    │    │
-│ ├─────────────────────────────────────────────┤    │
-│ │ GIGN v3.1              │ Düzenle | Sil | ⋯ │    │
-│ │ Mobil App v1.0        │ Düzenle | Sil | ⋯ │    │
-│ └─────────────────────────────────────────────┘    │
+│ ┌─────────────────────────────────────────────┐     │
+│ │ Platform Adı                  │ İşlemler    │     │
+│ ├─────────────────────────────────────────────┤     │
+│ │ GIGN v3.1              │ Düzenle | Sil | ⋯ │     │
+│ │ Mobil App v1.0        │ Düzenle | Sil | ⋯ │      │
+│ └─────────────────────────────────────────────┘     │
 └─────────────────────────────────────────────────────┘
 ```
 
-#### 2️⃣ "Yeni Platform Ekle" Tıkla
+#### 2️⃣ "Yeni Platform" Tıkla
 Form açılır:
 
 ```
@@ -168,13 +151,13 @@ Form açılır:
 │ ✎ Yeni Platform Oluştur                  │
 ├──────────────────────────────────────────┤
 │                                          │
-│ Platform Adı: *                          │
+│ Platform Adı:                           │
 │ [GIGN v3.1________________________]      │
 │                                          │
-│ Açıklama: (İsteğe Bağlı)                │
-│ [Otomotiv yazılımı projesi....]        │
+│                                         |
+│                                          |
 │                                          │
-│ [   Vazgeç   ]        [   Ekle   ]      │
+│ [   İptal   ]        [   Kaydet  ]      │
 └──────────────────────────────────────────┘
 ```
 
@@ -183,7 +166,6 @@ Form açılır:
 | Alan | Kuralı | Örnek |
 |------|--------|-------|
 | **Platform Adı** | Benzersiz, tanımlayıcı | "GIGN v3.1", "MÖP 2.0 Basic" |
-| **Açıklama** | İsteğe bağlı | "Otomotiv K-Line projesi" |
 
 #### 4️⃣ Arka Planda Veri Tabanı Saklama
 
@@ -214,8 +196,6 @@ def create_platform():
 Platform oluşturulur ve listeye eklenir:
 
 ```
-Başarı Mesajı: ✓ "Platform başarıyla oluşturuldu"
-
 Sonraki Yapılacaklar:
 1. Seviyeleri tanımla (İster hiyerarşisini oluştur)
 2. Test aşamalarını tanımla
@@ -283,43 +263,6 @@ Yeni g tipi ister eklersen:
    MAX('g5')'nin sayısal kısmı = 5
    Yeni kod = 'g' + (5+1) = 'g6'
 ```
-
-### ✏️ Platform Düzenleme
-
-#### Düzenleme Formunu Aç
-
-Platform satırındaki **"Düzenle"** tıkla:
-
-```
-Satır Öncesi:
-GIGN v3.1     [Düzenle] [Sil] [...]
-
-Satır Sonrası (Düzenleme Modu):
-[GIGN v3.1]  [✓ Kaydet] [Ø İptal]
-```
-
-#### Güncelleme Yap
-
-Input alanında değişiklik yap:
-- Örn: "GIGN v3.1" → "GIGN v3.1 Final"
-- Başinda/sonunda boşluk bırakma
-
-#### Kaydet veya İptal
-
-- **✓ Kaydet** = Güncelle
-- **Ø İptal** = Abondan iptal et
-
-**Denetim Günlüğü:**
-```
-LogType: UPDATE
-TabloAdi: platform_list
-AlanAdi: PlatformAdi
-EskiDeger: "GIGN v3.1"
-YeniDeger: "GIGN v3.1 Final"
-KullaniciAdi: "admin"
-DegisimTarihi: 2024-04-29 15:45:30
-```
-
 ### 🗑️ Platform Silme - ⚠️ KRİTİK İŞLEM
 
 #### Silme Öncesi Sistem Kontrolleri
@@ -429,141 +372,36 @@ Veritabanı (seviye_tanim):
 
 #### Mevcut Seviyeleri Görüntüleme
 
-Platform → **"Seviyeleri Ayarla"** sekmesi
+Platform → **"Seviyeler"** sekmesi
 
 ```
-Platform: GIGN v3.1
 ┌────────┬─────────────────────────────────┐
-│ Seviye │ Ad                              │
+│ No     │ Seviye Adı                      │
 ├────────┼─────────────────────────────────┤
 │ 1      │ Sistem Gerekliliği              │
 │ 2      │ Alt Sistem Gerekliliği          │
 │ 3      │ Modül Gerekliliği               │
 │ 4      │ Komponent Gerekliliği           │
 └────────┴─────────────────────────────────┘
-
-[+ Yeni Seviye Ekle]
 ```
 
 #### Yeni Seviye Ekleme
 
-1. "**+ Yeni Seviye Ekle**" tıkla
+1. "+Ekle" tıkla
 2. Form:
-
 ```
 Seviye Adı: [___________________]
-Açıklama: [_____________________]
-
-[Vazgeç]  [Ekle]
+[İptal]  [Kaydet]
 ```
-
 3. Seviye adı gir: "Yazılım Modülü", "Komponent", "Özellik", etc.
-4. "**Ekle**" tıkla
+4. "Kaydet" tıkla
 
-**Backend:**
-```sql
-SELECT COALESCE(MAX(SeviyeNo), 0) + 1 AS next_no
-FROM seviye_tanim WHERE PlatformID = ?
--- Sonuç: 5 (yeni seviye numarası)
-
-INSERT INTO seviye_tanim (PlatformID, SeviyeNo, SeviyeAdi)
-VALUES (?, 5, 'Yazılım Modülü')
-```
-
-### ⏱️ Test Aşamaları Yönetme
-
-#### Test Aşaması Nedir?
-
-```
-Test Aşamaları Yapısı:
-┌─────────────────────────────────┐
-│ test_asama Tablosu              │
-├─────────────────────────────────┤
-│ TestAsamaID                     │
-│ PlatformID (fk)                 │
-│ AsamaNo (1, 2, 3, ...)          │
-│ AsamaAdi                        │
-│ OlusturmaTarihi                 │
-└─────────────────────────────────┘
-
-Tipik Test Aşamaları:
-1. Unit Test (Birim - Yazılımcı)
-2. Integration Test (Entegrasyon - QA)
-3. System Test (Sistem - QA Team)
-4. Acceptance Test (Kabul - Müşteri)
-5. Performance Test (Yük ve Hız - QA)
-```
-
-#### Test Aşaması ekleme
-
-Platform → **"Test Aşamaları"** sekmesi
-
-```
-Platform: GIGN v3.1
-┌────────┬──────────────────┐
-│ Aşama  │ Adı              │
-├────────┼──────────────────┤
-│ 1      │ Unit Test        │
-│ 2      │ Integration Test │
-│ 3      │ System Test      │
-└────────┴──────────────────┘
-
-[+ Yeni Aşama Ekle]
-```
-
-1. "**+ Yeni Aşama Ekle**" tıkla
-2. Form açılır
-3. Aşama adı gir (maximum 100 karakter)
-4. "**Ekle**" tıkla
-
-**Backend:**
-```python
-# Otomatik sıra numarası:
-cur.execute(
-    "SELECT COALESCE(MAX(AsamaNo), 0) + 1 AS next_no " +
-    "FROM test_asama WHERE PlatformID = %s",
-    (platform_id,)
-)
-next_order = cur.fetchone()['next_no']  # Örn: 4
-
-cur.execute(
-    "INSERT INTO test_asama (PlatformID, AsamaNo, AsamaAdi) " +
-    "VALUES (%s, %s, %s)",
-    (platform_id, next_order, 'Performance Test')
-)
-```
-
----
-
-## Konfigürasyon Yönetimi - Detaylı
+## Konfigürasyon Yönetimi 
 
 ### 📍 Konfigürasyon Sayfasına Erişim
 
 **URL:** `http://localhost:5000/konfig`  
 **Navigasyon:** Ana Menü → Konfigürasyon
-
-### 🎯 Konfigürasyon Nedir? (Teknik)
-
-```
-Konfigürasyon = Ürün Varyantı
-
-Veritabanı (konfig_list):
-├── KonfigID (int, PK)
-├── KonfigAdi (varchar 255)
-└── OlusturmaTarihi (datetime)
-
-Örnek Konfigürasyonlar:
-```
-
-| Proje | Konfigürasyonlar | Amaç |
-|-------|------------------|------|
-| GIGN v3.1 | GIGN 3.1 TR | Türkçe sürümü |
-| | GIGN 3.1 EN | İngilizce sürümü |
-| | GIGN 3.1 Premium | Premium özellikler |
-| MÖP 2.0 | MÖP 2.0 Basic | Temel paket |
-| | MÖP 2.0 Pro | Pro paket |
-| Mobil App | iOS v1.0 | Apple |
-| | Android v1.0 | Google |
 
 ### ➕ Yeni Konfigürasyon Oluşturma
 
@@ -574,22 +412,22 @@ Konfigürasyon Sayfası:
 │ Konfigürasyon Yönetimi                   │
 ├──────────────────────────────────────────┤
 │                                          │
-│ [+ Yeni Konfigürasyon Ekle]             │
+│ [Ara...]                                 │
 │                                          │
-│ Mevcut Konfigürasyonlar:                │
-│ ┌──────────────────────────────────┐    │
-│ │ Adı     │ Oluş. Tarihi │İşlemler│    │
-│ ├──────────────────────────────────┤    │
-│ │ GIGN 3.1 TR │ 2024-03-20│Düz|Sil│    │
-│ │ GIGN 3.1 EN │ 2024-03-20│Düz|Sil│    │
-│ │ MÖP 2.0 Pro │ 2024-04-10│Düz|Sil│    │
-│ └──────────────────────────────────┘    │
+│ Mevcut Konfigürasyonlar:                 │
+│ ┌──────────────────────────────────┐     │
+│ │ #   │ Konfigürasyon Adı│İşlem    │     │
+│ ├──────────────────────────────────┤     │
+│ │ GIGN 3.1 TR │ 2024-03-2│Düz|Sil  │     │
+│ │ GIGN 3.1 EN │ 2024-03-20│Düz|Sil │     │
+│ │ MÖP 2.0 Pro │ 2024-04-10│Düz|Sil │     │
+│ └──────────────────────────────────┘     │
 └──────────────────────────────────────────┘
 ```
 
 #### Adımlar
 
-1. "**+ Yeni Konfigürasyon Ekle**" tıkla
+1. "** + Yeni Konfigürasyon **" tıkla
 2. Form açılır:
 
 ```
@@ -597,53 +435,31 @@ Konfigürasyon Sayfası:
 │ Yeni Konfigürasyon Ekle              │
 ├──────────────────────────────────────┤
 │ Konfigürasyon Adı: *                 │
-│ [GIGN v3.1 TR____________]           │
+│ [ ____________ ]                     │
 │                                      │
-│ Açıklama: (İsteğe bağlı)            │
-│ [Türkiye pazarı için...]           │
+│   [İptal]        [Kaydet]            │
 │                                      │
-│ [Vazgeç]        [Ekle]              │
+│                                      │
+│                                      │
 └──────────────────────────────────────┘
 ```
-
-3. Adı gir ve Ekle tıkla
-4. Veritabanına kaydedilir
-
-#### Adlarken Dikkat Edilecekler
-
-✅ İyi Örnekler:
-- "GIGN v3.1 TR"
-- "MÖP 2.0 Premium"
-- "iOS v1.0"
-- "Android v1.0"
-
-❌ Kötü Örnekler:
-- "Conf1", "v1", "Test"
-- "aaa", "xyz"
-- Çok uzun isimler (200+ karakter)
+3. Adı girdikten sonra kaydete tıklayın.
+4. Veritabanına kaydedilir.
 
 ### ✏️ Konfigürasyon Düzenleme
 
-Satırda "**Düzenle**" tıkla → Input modu açılır
-
-```
-Öncesi:  GIGN v3.1 TR    [Düzenle | Sil]
-Sonrası: [GIGN v3.1 TR]  [✓ | Ø]
-```
-
-Metni değiştir ve ✓ tıkla.
+Satırda "**Düzenle**" tıkla 
+Metni değiştirin ve "Kaydet" tıklayın.
 
 ### 🗑️ Konfigürasyon Silme
 
 Satırda "**Sil**" tıkla:
 
-```
 ⚠️ Onay Penceresi:
 
-Emin misiniz? Bu konfigürasyon silinecek.
+Sil?
 
-[Vazgeç]  [Evet, Sil]
-```
+[OK]  [Cancel]
 
 **Silme Kuralları:**
 - Bir konfigürasyon eğer hiç istere atanmamışsa kolayca silinebilir
@@ -652,31 +468,12 @@ Emin misiniz? Bu konfigürasyon silinecek.
   ❌ HATA: Bu konfigürasyon {sayı} istere atanmış, silinemez!
   ```
 
-### 🔗 Konfigürasyonları Platformlara Atama - Kapsamlı
-
-#### Atama Nedir?
-
-```
-Önce:  GIGN v3.1 platformu → "Hangi konfiglar bana uyar?"
-Sonra: GIGN v3.1 → GIGN 3.1 TR, GIGN 3.1 EN atanması
-
-Veritabanı (platform_konfig):
-┌────────────────┬──────────────┐
-│ PlatformID     │ KonfigID     │
-├────────────────┼──────────────┤
-│ 1 (GIGN 3.1)   │ 1 (TR)       │
-│ 1 (GIGN 3.1)   │ 2 (EN)       │
-└────────────────┴──────────────┘
-
-NOT: Bir platform için birden fazla konfig olabilir!
-```
-
-#### Atama İşlemi
+### 🔗 Konfigürasyonları Platformlara Atama 
 
 Platform → **"Konfigürasyonlar"** sekmesi
 
 ```
-Platform: G İGN v3.1
+Platform: GİGN v3.1
 
 Atanabilir Konfigürasyonlar Listesi:
 ┌─────────────────────┐
@@ -688,18 +485,13 @@ Atanabilir Konfigürasyonlar Listesi:
 
 [Kaydet]
 ```
-
-Atanacak konfigleri seçfb (checkbox):
+Atanacak konfigleri seçin (checkbox):
 - GIGN v3.1 TR → ☑
 - GIGN v3.1 EN → ☑
-
-"**Kaydet**"ımız tıkla → platform_konfig tablosuna kaydedilir.
-
-**Sonuç:** Şimdi bu platformda ister oluştururken sadece atanan konfigları seçebilsin.
-
+  
 ---
 
-## İster (Requirement) Yönetimi - Detaylı
+## İster Yönetimi
 
 ### 📍 İster Sayfasına Erişim
 
@@ -1795,47 +1587,3 @@ Uygulama Logları:
 ├─ stderr (error output)
 └─ MySQL logs (/var/log/mysql/error.log)
 ```
-
----
-
-## Sık Sorulan Sorular (SSS)
-
-### ❓ Q: Giriş Şifremi Unuttum
-**A:** Sistem yöneticisine haber ver. Yönetici "Kullanıcı Yönetimi" → "Şifre Sıfırla" ile geçici şifre verir.
-
-### ❓ Q: Yanlışlıkla Sildim, Geri Getirebilir miyim?
-**A:** Hayır, çoğu silme kalıcıdır. Denetim Günlüğü'nden ne silindiğini görebilirsin, yöneticiye haber ver.
-
-### ❓ Q: Toplu İster Yüklemek İstiyorum
-**A:** "Toplu Yükleme" sayfasında Excel dosyası uploadla (şablon format gerekir).
-
-### ❓ Q: Ister Numaralandırması Otomatik olmuyor
-**A:** Backend otomatiklik sağlar. Eğer boş bırakırsan sistem kendisi atanırı.
-
-### ❓ Q: Platform Havuz Olmadığını Fark Ettim
-**A:** Havuz platform oluştur: "Havuz" adı platformu oluştur, sistem otomatik tanır.
-
-### ❓ Q: Test Sonuçlarını Toplu Değiştirmek İstiyorum
-**A:** Henüz özellik yoktur, teker teker gir. Gelecek sürümde toplu işlem eklenecektir.
-
-### ❓ Q: Konfigürasyon Hangi Isterlere Atanmış?
-**A:** Denetim Günlüğü'nde platform_konfig tablosundaki değişiklikleri git.
-
-### ❓ Q: TA'yı İsteri Sildikten Sonra Ne Oluyor?
-**A:** İster silinince ta_sgo_baglanti'deki bağlantı otomatik silinir, TA kendisi kalır.
-
-### ❓ Q: Benzerlik Algoritması Nasıl Çalışıyor?
-**A:** Levenshtein Distance kullanılır (edit distance). Tüm karakterleri karşılaştırır.
-
----
-
-**Sorularınız mı var?**  
-Sistem yöneticisine iletişime geçin.  
-E-Posta: admin@company.com  
-Telefon: +90 XXX XXX XX XX
-
----
-
-**Bu Doküman Sürüm:** 2.0  
-**Son Güncellenme:** Nisan 2025  
-**Hazırlayanı:** Teknik Ekip
