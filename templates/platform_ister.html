@@ -196,6 +196,18 @@
     margin-bottom: 5px;
     margin-top: 8px
   }
+  .lb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:900;align-items:center;justify-content:center;display:none}
+  .lb-overlay.on{display:flex}
+  .lb-box{position:relative;max-width:90vw;max-height:90vh;background:var(--bg2);border-radius:10px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+  .lb-box img{max-width:90vw;max-height:80vh;display:block;object-fit:contain}
+  .lb-cap{padding:8px 14px;font-size:12px;color:var(--text2);background:var(--bg3)}
+  .lb-kapat{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .foto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:5px;margin-top:5px}
+  .foto-thumb{position:relative;border-radius:5px;overflow:hidden;border:1px solid var(--border2);background:var(--bg3);aspect-ratio:1}
+  .foto-thumb img{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block}
+  .foto-thumb .foto-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:3px;padding:1px 4px;font-size:10px;cursor:pointer;display:none}
+  .foto-thumb:hover .foto-del{display:block}
+  .foto-cap{font-size:9px;padding:2px 4px;background:var(--bg2);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 {% endblock %}
 
@@ -418,6 +430,44 @@
         class="btn btn-primary" onclick="taBaglaKaydet()">Bağla</button> </div>
   </div>
 </div>
+
+<!-- FOTOĞRAF EKLE MODAL -->
+<div class="modal-overlay" id="m-foto">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hd"><div class="modal-title">📸 Fotoğraf Ekle</div><span class="modal-close" onclick="mc('m-foto')">✕</span></div>
+    <div id="f-alert"></div>
+    <div class="fg">
+      <label class="fl">Fotoğraf Dosyası</label>
+      <div style="border:2px dashed var(--border2);border-radius:6px;padding:15px;text-align:center;cursor:pointer" onclick="document.getElementById('f-dosya').click()">
+        <div style="font-size:24px;margin-bottom:5px">📁</div>
+        <div style="font-size:12px;color:var(--text3)">Fotoğraf seçmek için tıklayın</div>
+      </div>
+      <input type="file" id="f-dosya" accept="image/*" onchange="fotoOnizle(this)" style="display:none">
+    </div>
+    <div id="f-onizleme" style="margin-bottom:12px;text-align:center;display:none">
+      <img id="f-resim" style="max-width:100%;max-height:300px;border-radius:6px;display:none">
+    </div>
+    <div class="fg">
+      <label class="fl">Açıklama (opsiyonel)</label>
+      <input type="text" id="f-aciklama" placeholder="Fotoğraf açıklaması">
+    </div>
+    <input type="hidden" id="f-nid">
+    <input type="hidden" id="f-data">
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="mc('m-foto')">İptal</button>
+      <button class="btn btn-primary" id="f-kaydet-btn" onclick="fotoKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- LİGHTBOX -->
+<div id="m-lightbox" class="lb-overlay" onclick="lbKapat(event)">
+  <div class="lb-box">
+    <button class="lb-kapat" onclick="document.getElementById('m-lightbox').classList.remove('on')">✕</button>
+    <img id="lb-img" src="" alt="">
+    <div class="lb-cap" id="lb-cap"></div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -593,6 +643,7 @@
       var roots = liste.filter(function (n) { return !n.ParentID || !listeIds.has(n.ParentID); });
       el.innerHTML = roots.map(function (n) { return renderKutu(n, liste); }).join('');
       liste.forEach(function (n) { yukleTabloları(n.NodeID); yukleButonlar(n.NodeID); });
+      liste.forEach(function (n) { yukleFotograflarListe(n.NodeID); });
     }
   }
 
@@ -657,6 +708,7 @@
     html += '<div style="font-size:12px;line-height:1.6;' + (isB ? 'font-weight:600;' : '') + '" onclick="secDetay(' + node.NodeID + ')">' + (node.Icerik || '(boş)') + '</div>';
     html += '<div id="it-' + node.NodeID + '"></div>';
     html += '<div id="ib-' + node.NodeID + '"></div>';
+    html += '<div id="if-' + node.NodeID + '"></div>';
     html += '<div id="ig-' + node.NodeID + '" data-y="0"></div>';
     html += '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:5px">';
     html += '<button class="bm" onclick="siralaDegis(' + node.NodeID + ',\'yukari\')">↑</button>';
@@ -666,6 +718,7 @@
     html += '<button class="bm" onclick="bulletEkle(' + node.NodeID + ')">• Bullet</button>';
     html += '<button class="bm" onclick="tabloModal(' + node.NodeID + ')">+ Tablo</button>';
     html += '<button class="bm" onclick="gorusModal(' + node.NodeID + ')">+ Görüş</button>';
+    html += '<button class="bm" onclick="fotoModal(' + node.NodeID + ')">🖼 Fotoğraf</button>';
     html += '<button class="bm" onclick="duzModal(' + node.NodeID + ')">✎</button>';
     html += '<button class="bm d" onclick="isterSil(' + node.NodeID + ')">✕ Sil</button>';
     html += '</div></div></div>';
@@ -749,7 +802,8 @@
       });
       html += '</div>';
     }
-    d.innerHTML = html;
+    d.innerHTML = html + '<div id="detay-fotograflar"></div>';
+    yukleFotograflar(nd.NodeID);
   }
 
   // ── ONAY TİKİ ─────────────────────────────────────────────────────────────
@@ -1218,6 +1272,123 @@ function yanitGuncelleKaydet(yid, nid) {
   function mc(id) { document.getElementById(id).classList.remove('on'); }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { document.getElementById('ctx').style.display = 'none'; document.querySelectorAll('.modal-overlay.on').forEach(function (m) { m.classList.remove('on'); }); } });
   var taEkleNodeId = null; function taEkleModal(nodeId) { if (!seciliPID) { alert('Platform seçin.'); return; } taEkleNodeId = nodeId; fetch('/api/platform/' + seciliPID + '/ta').then(function (r) { return r.json(); }).then(function (list) { var sel = document.getElementById('ta-sec'); if (!list.length) { alert('Bu platformda TA dokümanı yok. Önce TA Dokümanları sayfasından oluşturun.'); return; } sel.innerHTML = list.map(function (t) { return '<option value="' + t.TaID + '">' + t.Adi + '</option>'; }).join(''); document.getElementById('m-ta-bagla').classList.add('on'); }); } function taBaglaKaydet() { var taId = parseInt(document.getElementById('ta-sec').value); if (!taId) return; fetch('/api/ta/' + taId + '/sgo_bagla', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ NodeID: taEkleNodeId }) }).then(function (r) { return r.json(); }).then(function (d) { if (d.hata) { alert(d.hata); return; } mc('m-ta-bagla'); yukle(); }); }
+
+  // ── FOTOĞRAF ──────────────────────────────────────────────────────────────
+  var FOTO_MAX_PX = 1600, FOTO_QUALITY = 0.82;
+
+  function fotoModal(nid) {
+    document.getElementById('f-nid').value = nid;
+    document.getElementById('f-data').value = '';
+    document.getElementById('f-aciklama').value = '';
+    document.getElementById('f-alert').innerHTML = '';
+    document.getElementById('f-onizleme').style.display = 'none';
+    document.getElementById('f-resim').style.display = 'none';
+    document.getElementById('f-resim').src = '';
+    document.getElementById('f-dosya').value = '';
+    var btn = document.getElementById('f-kaydet-btn'); if (btn) btn.disabled = false;
+    document.getElementById('m-foto').classList.add('on');
+  }
+
+  function fotoOnizle(inp) {
+    var f = inp.files[0];
+    if (!f) return;
+    document.getElementById('f-alert').innerHTML = '<div style="background:var(--blue-bg);color:var(--blue);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">⏳ Fotoğraf işleniyor...</div>';
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var original = new Image();
+      original.onload = function () {
+        var w = original.width, h = original.height;
+        if (w > FOTO_MAX_PX || h > FOTO_MAX_PX) { if (w >= h) { h = Math.round(h * (FOTO_MAX_PX / w)); w = FOTO_MAX_PX; } else { w = Math.round(w * (FOTO_MAX_PX / h)); h = FOTO_MAX_PX; } }
+        var canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(original, 0, 0, w, h);
+        var compressed = canvas.toDataURL('image/jpeg', FOTO_QUALITY);
+        var img = document.getElementById('f-resim'); img.src = compressed; img.style.display = 'block';
+        document.getElementById('f-onizleme').style.display = 'block';
+        document.getElementById('f-data').value = compressed;
+        var kb = Math.round(compressed.length * 0.75 / 1024);
+        document.getElementById('f-alert').innerHTML = '<div style="background:var(--bg3);color:var(--text3);padding:6px 8px;border-radius:4px;margin-bottom:8px;font-size:11px">✅ Hazır — ' + w + '×' + h + 'px · ~' + kb + ' KB</div>';
+      };
+      original.src = e.target.result;
+    };
+    reader.readAsDataURL(f);
+  }
+
+  function fotoKaydet() {
+    var nid = parseInt(document.getElementById('f-nid').value);
+    if (!nid || isNaN(nid)) { document.getElementById('f-alert').innerHTML = '<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Geçersiz node.</div>'; return; }
+    var data = document.getElementById('f-data').value;
+    if (!data) { document.getElementById('f-alert').innerHTML = '<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Lütfen bir fotoğraf seçin.</div>'; return; }
+    var btn = document.getElementById('f-kaydet-btn');
+    if (btn) { if (btn.disabled) return; btn.disabled = true; }
+    document.getElementById('f-alert').innerHTML = '<div style="background:var(--blue-bg);color:var(--blue);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">⏳ Yükleniyor...</div>';
+    fetch('/api/ister_fotograf', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ NodeID: nid, FotoData: data, Aciklama: document.getElementById('f-aciklama').value.trim() })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (btn) btn.disabled = false;
+      if (d.hata) { document.getElementById('f-alert').innerHTML = '<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Hata: ' + d.hata + '</div>'; return; }
+      mc('m-foto');
+      if (seciliNID === nid) yukleFotograflar(nid);
+      yukleFotograflarListe(nid);
+    }).catch(function (err) { if (btn) btn.disabled = false; document.getElementById('f-alert').innerHTML = '<div style="background:var(--red-bg);color:var(--red);padding:8px;border-radius:4px;margin-bottom:8px;font-size:11px">❌ Hata: ' + err + '</div>'; });
+  }
+
+  function yukleFotograflarListe(nid) {
+    var el = document.getElementById('if-' + nid); if (!el) return;
+    fetch('/api/ister_fotograf/' + nid + '/meta').then(function (r) { return r.json(); }).then(function (list) {
+      var filtered = (list || []).filter(function (f) { return parseInt(f.NodeID) === parseInt(nid); });
+      if (!filtered.length) { el.innerHTML = ''; return; }
+      el.innerHTML = '<div class="foto-grid">' + filtered.map(function (f) {
+        return '<div class="foto-thumb">' +
+          '<img src="/api/ister_fotograf/foto/' + f.FotoID + '" loading="lazy" data-id="' + f.FotoID + '" data-aciklama="' + (f.Aciklama || '').replace(/"/g, '&quot;') + '" onclick="lbAc(this.dataset.id, this.dataset.aciklama)">' +
+          '<button class="foto-del" onclick="fotoSilListe(' + f.FotoID + ',' + nid + ',event)">✕</button>' +
+          (f.Aciklama ? '<div class="foto-cap">' + f.Aciklama + '</div>' : '') +
+          '</div>';
+      }).join('') + '</div>';
+    }).catch(function () {});
+  }
+
+  function fotoSilListe(fid, nid, e) {
+    e.stopPropagation();
+    if (!confirm('Bu fotoğrafı silmek istediğinize emin misiniz?')) return;
+    fetch('/api/ister_fotograf/' + fid, { method: 'DELETE' })
+      .then(function () { yukleFotograflarListe(nid); if (seciliNID === nid) yukleFotograflar(nid); })
+      .catch(function (err) { alert('Hata: ' + err); });
+  }
+
+  function yukleFotograflar(nid) {
+    fetch('/api/ister_fotograf/' + nid + '/meta').then(function (r) { return r.json(); }).then(function (list) {
+      var el = document.getElementById('detay-fotograflar'); if (!el) return;
+      var filtered = (list || []).filter(function (f) { return parseInt(f.NodeID) === parseInt(nid); });
+      if (!filtered.length) { el.innerHTML = ''; return; }
+      el.innerHTML = '<div style="margin-top:10px">' +
+        '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">📸 Fotoğraflar (' + filtered.length + ')</div>' +
+        '<div class="foto-grid">' + filtered.map(function (f) {
+          return '<div class="foto-thumb">' +
+            '<img src="/api/ister_fotograf/foto/' + f.FotoID + '" loading="lazy" data-id="' + f.FotoID + '" data-aciklama="' + (f.Aciklama || '').replace(/"/g, '&quot;') + '" onclick="lbAc(this.dataset.id, this.dataset.aciklama)">' +
+            '<button class="foto-del" onclick="fotoSil(' + f.FotoID + ',' + nid + ')">✕</button>' +
+            (f.Aciklama ? '<div class="foto-cap">' + f.Aciklama + '</div>' : '') +
+            '</div>';
+        }).join('') + '</div></div>';
+    }).catch(function () {});
+  }
+
+  function fotoSil(fid, nid) {
+    if (!confirm('Bu fotoğrafı silmek istediğinize emin misiniz?')) return;
+    fetch('/api/ister_fotograf/' + fid, { method: 'DELETE' })
+      .then(function () { yukleFotograflar(nid); yukleFotograflarListe(nid); })
+      .catch(function (err) { alert('Hata: ' + err); });
+  }
+
+  function lbAc(fotoId, aciklama) {
+    document.getElementById('lb-img').src = '/api/ister_fotograf/foto/' + fotoId;
+    var cap = document.getElementById('lb-cap');
+    if (aciklama && aciklama.trim()) { cap.textContent = aciklama; cap.style.display = 'block'; }
+    else { cap.textContent = ''; cap.style.display = 'none'; }
+    document.getElementById('m-lightbox').classList.add('on');
+  }
+
+  function lbKapat(e) { if (e.target === document.getElementById('m-lightbox')) document.getElementById('m-lightbox').classList.remove('on'); }
 
 </script>
 {% endblock %}

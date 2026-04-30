@@ -96,3 +96,18 @@ class FotografModel(BaseModel):
             return cur.fetchone()
         finally:
             cur.close()
+
+    def listesi_meta(self, node_id):
+        """FotoData olmadan sadece metadata döner"""
+        cur = self.get_dict_cursor()
+        try:
+            cur.execute(
+                """SELECT FotoID, NodeID, Aciklama, OlusturmaTarihi
+                FROM ister_fotograf
+                WHERE NodeID = %s
+                ORDER BY OlusturmaTarihi DESC""",
+                (node_id,)
+            )
+            return cur.fetchall()
+        finally:
+            cur.close()
